@@ -1,4 +1,5 @@
 import random
+import copy
 
 # ─────────────────────────────────────────────
 # STEP 1: Define the 10 vertices
@@ -77,11 +78,105 @@ def print_graph(edges, connected):
     print()
 
 
+# ─────────────────────────────────────────────
+# STEP 7: Calculate the degree of each vertex
+# The degree of a vertex is the number of edges
+# connected to it. We count its neighbours in
+# the adjacency list — that gives the degree directly.
+# ─────────────────────────────────────────────
+def get_degrees(graph):
+    degrees = {}
+
+    for vertex in graph:
+        degrees[vertex] = len(graph[vertex])    # number of neighbours = degree
+
+    return degrees
+
+
+
+# ─────────────────────────────────────────────
+# STEP 8: Print all vertex degrees clearly
+# ─────────────────────────────────────────────
+def print_degrees(degrees):
+    print("Vertex degrees:")
+    for vertex, degree in degrees.items():
+        print(f"  Vertex {vertex}: degree {degree}")
+    print()
+
+
+
+# ─────────────────────────────────────────────
+# STEP 9: Check for an Euler circuit
+# Euler's theorem: a connected graph has an Euler
+# circuit if and only if EVERY vertex has even degree.
+# If any vertex has an odd degree, return False.
+# ─────────────────────────────────────────────
+def has_euler_circuit(degrees):
+    for vertex in degrees:
+        if degrees[vertex] % 2 != 0:           # odd degree found
+            return False
+
+    return True                                 # all even → Euler circuit exists
+
+
+
+# ─────────────────────────────────────────────
+# STEP 10: Find the Euler circuit using Hierholzer's Algorithm
+#
+# How it works:
+# 1. Start at any vertex and push it onto a stack.
+# 2. If the top vertex still has unused edges, follow
+#    one and remove it so it cannot be used again.
+# 3. If the top vertex has no more unused edges,
+#    pop it off and add it to the circuit.
+# 4. Repeat until the stack is empty.
+#
+# We use a deep copy of the graph so the original
+# adjacency list is not modified during the search.
+# ─────────────────────────────────────────────
+def find_euler_circuit(graph, vertices):
+    temp_graph = copy.deepcopy(graph)           # work on a copy, not the original
+
+    start = vertices[0]                         # start from vertex A
+    stack = [start]
+    circuit = []
+
+    while stack:
+        v = stack[-1]                           # look at the top of the stack
+
+        if temp_graph[v]:                       # if v still has unused edges
+            u = temp_graph[v][0]               # pick the first available neighbour
+            stack.append(u)                    # push neighbour onto the stack
+            temp_graph[v].remove(u)            # remove edge v–u
+            temp_graph[u].remove(v)            # remove reverse edge u–v (undirected)
+
+        else:
+            circuit.append(stack.pop())        # no edges left from v → add to circuit
+
+    return circuit
+
+
+
+# ─────────────────────────────────────────────
+# STEP 11: Print the Euler circuit result clearly
+# ─────────────────────────────────────────────
+def print_euler_result(has_circuit, circuit=None):
+    print(f"Euler Circuit exists: {'Yes' if has_circuit else 'No'}")
+
+    if has_circuit and circuit:
+        path = " → ".join(circuit)
+        print(f"Euler Circuit: {path}")
+    else:
+        print("(Not all vertices have even degree — no Euler circuit is possible.)")
+
+    print()
+
+
 
 # ─────────────────────────────────────────────
 # STEP 6: Run the program
-# Generate a graph, check connectivity, print results
-# Run it 5 times to show different random graphs
+# Generate a graph, check connectivity and Euler circuit.
+# Run it 5 times to show different random graphs.
 # ─────────────────────────────────────────────
 print("=" * 55)
 print("  Random Graph Generator — 10 Vertices")
@@ -96,3 +191,18 @@ for run in range(1, 6):
     connected = is_connected(graph, vertices)
 
     print_graph(edges, connected)
+
+    degrees = get_degrees(graph)
+    print_degrees(degrees)
+
+    if not connected:
+        print("Euler Circuit exists: No")
+        print("(Graph is not connected — Euler circuit requires a connected graph.)")
+        print()
+    else:
+        euler = has_euler_circuit(degrees)
+        if euler:
+            circuit = find_euler_circuit(graph, vertices)
+            print_euler_result(True, circuit)
+        else:
+            print_euler_result(False)

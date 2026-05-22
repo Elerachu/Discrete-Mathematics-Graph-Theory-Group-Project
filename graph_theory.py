@@ -73,6 +73,7 @@ def print_graph(edges, connected):
     print(f"Graph is connected: {'Yes' if connected else 'No'}")
     print()
 
+
 # ─────────────────────────────────────────────
 # STEP 6: Calculate the degree of each vertex
 # The degree of a vertex is the number of edges
@@ -87,6 +88,7 @@ def get_degrees(graph):
 
     return degrees
 
+
 # ─────────────────────────────────────────────
 # STEP 7: Print all vertex degrees clearly
 # ─────────────────────────────────────────────
@@ -95,6 +97,7 @@ def print_degrees(degrees):
     for vertex, degree in degrees.items():
         print(f"  Vertex {vertex}: degree {degree}")
     print()
+
 
 # ─────────────────────────────────────────────
 # STEP 8: Check for an Euler circuit
@@ -108,6 +111,7 @@ def has_euler_circuit(degrees):
             return False
 
     return True                                 # all even → Euler circuit exists
+
 
 # ─────────────────────────────────────────────
 # STEP 9: Find the Euler circuit using Hierholzer's Algorithm
@@ -148,6 +152,7 @@ def find_euler_circuit(graph, vertices):
     circuit.reverse()                           # Hierholzer's builds in reverse — fix the order
     return circuit
 
+
 # ─────────────────────────────────────────────
 # STEP 10: Print the Euler circuit result clearly
 # ─────────────────────────────────────────────
@@ -161,6 +166,7 @@ def print_euler_result(has_circuit, circuit=None):
         print("(Not all vertices have even degree — no Euler circuit is possible.)")
 
     print()
+
 
 # ─────────────────────────────────────────────
 # STEP 11: Run the program
@@ -195,6 +201,7 @@ for run in range(1, 6):
             print_euler_result(True, circuit)
         else:
             print_euler_result(False)
+
 
 # ─────────────────────────────────────────────
 # STEP 12: Sanity check — verify Hierholzer's

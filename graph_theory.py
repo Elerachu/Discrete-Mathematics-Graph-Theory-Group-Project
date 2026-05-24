@@ -233,3 +233,64 @@ assert has_euler_circuit(test_degrees), "Test failed: square should be Eulerian"
 test_circuit = find_euler_circuit(test_graph, test_vertices)
 print("Sanity check passed:", " → ".join(test_circuit))
 print("(Expected: 0 → 1 → 2 → 3 → 0)")
+
+# ─────────────────────────────────────────────
+# STEP 13: Monte Carlo Simulation
+# Estimate P(Euler circuit | connected) by running
+# 10,000 random graph trials and counting outcomes.
+# Only connected graphs are counted in the denominator
+# because the question is specifically conditional on
+# connectivity. Disconnected graphs cannot have an
+# Euler circuit by definition and are excluded entirely.
+# 10,000 iterations chosen for stability — two independent
+# runs should agree to at least 2 decimal places.
+# ─────────────────────────────────────────────
+
+def run_simulation(iterations=10_000):
+    total_generated      = 0
+    total_connected      = 0
+    connected_with_euler = 0
+
+    for _ in range(iterations):
+        edges   = generate_random_graph(vertices, probability=0.4)
+        graph   = build_graph(vertices, edges)
+        total_generated += 1
+
+        if not is_connected(graph, vertices):
+            continue
+
+        total_connected += 1
+        degrees = get_degrees(graph)
+
+        if has_euler_circuit(degrees):
+            connected_with_euler += 1
+
+    probability = (connected_with_euler / total_connected
+                   if total_connected > 0 else 0.0)
+
+    return total_generated, total_connected, connected_with_euler, probability
+
+
+def print_simulation_summary(run_label, total, connected, euler, prob):
+    print(f"--- {run_label} ---")
+    print(f"  Total graphs generated             : {total:>7,}")
+    print(f"  Connected graphs                   : {connected:>7,}")
+    print(f"  Connected graphs with Euler circuit: {euler:>7,}")
+    print(f"  Estimated probability              : {prob:.4f}")
+    print()
+
+
+print("=" * 55)
+print("  Monte Carlo Simulation — 10,000 Iterations")
+print("=" * 55)
+print()
+
+t1, c1, e1, p1 = run_simulation()
+print_simulation_summary("Run 1 of 2", t1, c1, e1, p1)
+
+t2, c2, e2, p2 = run_simulation()
+print_simulation_summary("Run 2 of 2", t2, c2, e2, p2)
+
+diff = abs(p1 - p2)
+print(f"  Difference between runs: {diff:.4f}")
+print(f"  Estimate stable? {'Yes' if diff < 0.01 else 'No — consider more iterations'}")

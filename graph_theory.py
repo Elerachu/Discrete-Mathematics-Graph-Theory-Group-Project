@@ -168,11 +168,10 @@ def print_euler_result(has_circuit, circuit=None):
     print()
 
 
-# ─────────────────────────────────────────────
-# STEP 11: Run the program
-# Generate a graph, check connectivity and Euler circuit.
-# Run it 5 times to show different random graphs.
-# ─────────────────────────────────────────────
+# ════════════════════════════════════════════════════════
+#  PART A — Generate and analyse 5 random graphs
+# ════════════════════════════════════════════════════════
+
 print("=" * 55)
 print("  Random Graph Generator — 10 Vertices")
 print("=" * 55)
@@ -181,8 +180,8 @@ print()
 for run in range(1, 6):
     print(f"--- Run {run} ---")
 
-    edges = generate_random_graph(vertices, probability=0.4)
-    graph = build_graph(vertices, edges)
+    edges     = generate_random_graph(vertices, probability=0.4)
+    graph     = build_graph(vertices, edges)
     connected = is_connected(graph, vertices)
 
     print_graph(edges, connected)
@@ -203,15 +202,15 @@ for run in range(1, 6):
             print_euler_result(False)
 
 
-# ─────────────────────────────────────────────
-# STEP 12: Sanity check — verify Hierholzer's
-# algorithm on a known graph before trusting it
-# on random graphs.
+# ════════════════════════════════════════════════════════
+#  PART B — Sanity check on a known graph
 #
-# A square (0-1-2-3-0) has 4 vertices each with
-# degree 2 (even), so an Euler circuit must exist.
-# Expected circuit: 0 → 1 → 2 → 3 → 0
-# ─────────────────────────────────────────────
+#  We verify Hierholzer's algorithm on a square graph
+#  (0–1–2–3–0) before trusting it on random graphs.
+#  Every vertex has degree 2 (even), so an Euler circuit
+#  must exist. Expected result: 0 → 1 → 2 → 3 → 0
+# ════════════════════════════════════════════════════════
+
 print("=" * 55)
 print("  Sanity Check — Square Graph (0-1-2-3-0)")
 print("=" * 55)
@@ -228,23 +227,36 @@ for v, d in test_degrees.items():
     print(f"  Vertex {v}: degree {d}")
 print()
 
-assert has_euler_circuit(test_degrees), "Test failed: square should be Eulerian"
+assert has_euler_circuit(test_degrees), "Test FAILED — square should be Eulerian"
 
 test_circuit = find_euler_circuit(test_graph, test_vertices)
 print("Sanity check passed:", " → ".join(test_circuit))
 print("(Expected: 0 → 1 → 2 → 3 → 0)")
+print()
 
-# ─────────────────────────────────────────────
-# STEP 13: Monte Carlo Simulation
-# Estimate P(Euler circuit | connected) by running
-# 10,000 random graph trials and counting outcomes.
-# Only connected graphs are counted in the denominator
-# because the question is specifically conditional on
-# connectivity. Disconnected graphs cannot have an
-# Euler circuit by definition and are excluded entirely.
-# 10,000 iterations chosen for stability — two independent
-# runs should agree to at least 2 decimal places.
-# ─────────────────────────────────────────────
+
+# ════════════════════════════════════════════════════════
+#  PART C — Monte Carlo probability estimation
+#
+#  We estimate P(Euler circuit | graph is connected).
+#
+#  Method:
+#    Run 10,000 random graph trials.
+#    For each trial:
+#      — if the graph is not connected, skip it entirely
+#        (a disconnected graph cannot have an Euler circuit
+#         and must not count in the denominator)
+#      — if connected, check for an Euler circuit
+#
+#    P(Euler | connected) = euler_count / connected_count
+#
+#  Why 10,000 iterations?
+#    Euler circuits are rare (~0.1–0.2% of connected graphs).
+#    With 10,000 trials roughly 9,000 are connected, giving
+#    ~10–20 Euler cases — enough for a stable estimate.
+#    We run the simulation twice and compare; if the two
+#    results agree within 0.01, the sample size is sufficient.
+# ════════════════════════════════════════════════════════
 
 def run_simulation(iterations=10_000):
     total_generated      = 0
@@ -252,12 +264,12 @@ def run_simulation(iterations=10_000):
     connected_with_euler = 0
 
     for _ in range(iterations):
-        edges   = generate_random_graph(vertices, probability=0.4)
-        graph   = build_graph(vertices, edges)
+        edges = generate_random_graph(vertices, probability=0.4)
+        graph = build_graph(vertices, edges)
         total_generated += 1
 
         if not is_connected(graph, vertices):
-            continue
+            continue                             # skip disconnected graphs entirely
 
         total_connected += 1
         degrees = get_degrees(graph)
@@ -276,7 +288,7 @@ def print_simulation_summary(run_label, total, connected, euler, prob):
     print(f"  Total graphs generated             : {total:>7,}")
     print(f"  Connected graphs                   : {connected:>7,}")
     print(f"  Connected graphs with Euler circuit: {euler:>7,}")
-    print(f"  Estimated probability              : {prob:.4f}")
+    print(f"  Estimated P(Euler | connected)     : {prob:.4f}  (~{prob * 100:.2f}%)")
     print()
 
 
@@ -292,5 +304,17 @@ t2, c2, e2, p2 = run_simulation()
 print_simulation_summary("Run 2 of 2", t2, c2, e2, p2)
 
 diff = abs(p1 - p2)
-print(f"  Difference between runs: {diff:.4f}")
-print(f"  Estimate stable? {'Yes' if diff < 0.01 else 'No — consider more iterations'}")
+print(f"  Difference between runs  : {diff:.4f}")
+print(f"  Estimate stable?         : {'Yes' if diff < 0.01 else 'No — consider more iterations'}")
+print()
+print("  Interpretation:")
+print(f"  Given that a random graph on 10 vertices (p=0.4) is")
+print(f"  connected, there is approximately a {((p1+p2)/2)*100:.2f}% chance")
+print(f"  it also contains an Euler circuit.")
+print()
+print("  Why so low?")
+print("  For an Euler circuit to exist, ALL 10 vertices must")
+print("  have even degree simultaneously. The probability that")
+print("  any single vertex has even degree is roughly 0.5.")
+print("  All 10 being even at once is approximately (0.5)^10")
+print("  = 1/1024 ≈ 0.10%, consistent with our result.")
